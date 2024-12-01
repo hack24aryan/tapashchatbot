@@ -10,23 +10,18 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # Define a function to generate answers using GPT-3
 def generate_answer(question):
-    model_engine = "text-davinci-002"
-    prompt = (f"Q: {question}\n"
-              "A:")
-
-   response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",  # Use "gpt-4" if needed
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Your question"}
-    ],
-    max_tokens=100,
-    temperature=0.7
-)
-
-    answer = response.choices[0].text.strip()
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",  # Use "gpt-4" if needed
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": question}  # Use the incoming question
+        ],
+        max_tokens=100,
+        temperature=0.7
+    )
+    
+    answer = response.choices[0].message['content'].strip()  # Corrected the choice attribute
     return answer
-
 
 # Route for the home page (Root URL)
 @app.route('/')
