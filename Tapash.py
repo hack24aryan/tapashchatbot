@@ -14,14 +14,15 @@ def generate_answer(question):
     prompt = (f"Q: {question}\n"
               "A:")
 
-    response = openai.Completion.create(
-        engine=model_engine,
-        prompt=prompt,
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.7,
-    )
+   response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",  # Use "gpt-4" if needed
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Your question"}
+    ],
+    max_tokens=100,
+    temperature=0.7
+)
 
     answer = response.choices[0].text.strip()
     return answer
