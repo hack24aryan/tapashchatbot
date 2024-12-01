@@ -1,46 +1,53 @@
+import os
 from flask import Flask, request
 import openai
 from twilio.twiml.messaging_response import MessagingResponse
-import os
 
-# Initialize Flask App
 app = Flask(__name__)
+
+# Initialize the OpenAI API key
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+
+# Define a function to generate answers using GPT-3
+def generate_answer(question):
+    model_engine = "text-davinci-002"
+    prompt = (f"Q: {question}\n"
+              "A:")
+
+    response = openai.Completion.create(
+        engine=model_engine,
+        prompt=prompt,
+        max_tokens=1024,
+        n=1,
+        stop=None,
+        temperature=0.7,
+    )
+
+    answer = response.choices[0].text.strip()
+    return answer
+
 
 # Route for the home page (Root URL)
 @app.route('/')
 def home():
     return "Hello, World!"  # Or your desired home page content
 
+# Route to handle incoming WhatsApp messages
+@app.route('/chatgpt', methods=['POST'])
+def chatgpt():
+    incoming_que = request.values.get('Body', '').lower()
+    print("Question: ", incoming_que)
+
+    # Generate the answer using GPT-3
+    answer = generate_answer(incoming_que)
+    print("BOT Answer: ", answer)
+
+    bot_resp = MessagingResponse()
+    msg = bot_resp.message()
+    msg.body(answer)
+    return str(bot_resp)
+
 if __name__ == '__main__':
-    app.run(debug=True)
-
-# Set OpenAI API Key (replace with your key or set it as an environment variable)
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-
-# Function to Generate ChatGPT Responses
-def generate_answer(question):
-    try:
-        response = openai.Completion.create(
-            engine="text-davinci-002",  # Use GPT-4 if you have access
-            prompt=f"Q: {question}\nA:",
-            max_tokens=150,
-            temperature=0.7,
-        )
-        return response.choices[0].text.strip()
-    except Exception as e:
-        return "Sorry, something went wrong. Please try again later."
-
-# Route for WhatsApp Messages
-@app.route("/whatsapp", methods=["POST"])
-def whatsapp():
-    incoming_msg = request.values.get("Body", "").strip()
-    print(f"Received: {incoming_msg}")
-    answer = generate_answer(incoming_msg)
-    print(f"Reply: {answer}")
-    resp = MessagingResponse()
-    resp.message(answer)
-    return str(resp)
-
-# Run the Flask App Locally
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Use the port that Render provides or default to 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
