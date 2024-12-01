@@ -6,6 +6,14 @@ import os
 # Initialize Flask App
 app = Flask(__name__)
 
+# Route for the home page (Root URL)
+@app.route('/')
+def home():
+    return "Hello, World!"  # Or your desired home page content
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
 # Set OpenAI API Key (replace with your key or set it as an environment variable)
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
